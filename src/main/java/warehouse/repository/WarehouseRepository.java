@@ -1,13 +1,9 @@
 package warehouse.repository;
 
-import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+import warehouse.model.Warehouse;
 
-import warehouse.model.ProductData;
-
-public interface WarehouseRepository extends MongoRepository<ProductData, String> {
-
-    public ProductData findByProductID(String productID);
-    public List<ProductData> findByWarehouseID(String warehouseID);
-
- }
+@Repository
+public interface WarehouseRepository extends MongoRepository<Warehouse, String> {
+}

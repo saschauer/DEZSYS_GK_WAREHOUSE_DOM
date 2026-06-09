@@ -1,66 +1,63 @@
 package warehouse;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 
-import warehouse.model.ProductData;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import warehouse.repository.ProductRepository;
 import warehouse.repository.WarehouseRepository;
+import warehouse.model.ProductData;
+import warehouse.model.Warehouse;
 
 @SpringBootApplication
-public class Application implements CommandLineRunner {
+public class Application {
 
-	@Autowired
-	private WarehouseRepository repository;
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+    @Bean
+    CommandLineRunner initDatabase(ProductRepository productRepo, WarehouseRepository warehouseRepo) {
+        return args -> {
+            productRepo.deleteAll();
+            warehouseRepo.deleteAll();
 
-	@Override
-	public void run(String... args) throws Exception {
+            String[] categories = {"Getraenk", "Waschmittel", "Tierfutter", "Lebensmittel", "Elektronik", "Kleidung"};
+            String[] warehouseIds = {"1", "2", "3", "4", "5"};
+            String[] cities = {"Linz", "Wien", "Graz", "Salzburg", "Innsbruck"};
 
-		// Initialize product data repository
-		repository.deleteAll();
+            for (int i = 0; i < warehouseIds.length; i++) {
+                warehouseRepo.save(new Warehouse(
+                        warehouseIds[i],
+                        "Zentrallager " + cities[i],
+                        "2026-06-09T10:00:00Z",
+                        4000 + (i * 100),
+                        cities[i],
+                        "Austria",
+                        new ArrayList<>()
+                ));
+            }
 
-		// save a couple of product data
-		repository.save(new ProductData("1","00-443175","Bio Orangensaft Sonne","Getraenk", 2500));
-		repository.save(new ProductData("1","00-871895","Bio Apfelsaft Gold","Getraenk", 3420));
-		repository.save(new ProductData("1","01-926885","Ariel Waschmittel Color","Waschmittel", 478));
-		repository.save(new ProductData("1","02-234811","Mampfi Katzenfutter Rind","Tierfutter", 1324));
-		repository.save(new ProductData("2","03-893173","Saugstauberbeutel Ingres","Reinigung", 7390));
-		System.out.println();
+            Random random = new Random();
+            List<ProductData> products = new ArrayList<>();
 
-		// fetch all products
-		System.out.println("ProductData found with findAll():");
-		System.out.println("-------------------------------");
-		for (ProductData productdata : repository.findAll()) {
-			System.out.println(productdata);
-		}
-		System.out.println();
+            for (int i = 1; i <= 300; i++) {
+                String category = categories[random.nextInt(categories.length)];
+                String warehouseId = warehouseIds[random.nextInt(warehouseIds.length)];
+                String productId = String.format("%02d-%06d", random.nextInt(100), i);
+                String name = "Test-Produkt " + i;
+                double quantity = Math.round(random.nextDouble() * 5000);
 
-		// Fetch single product
-		System.out.println("Record(s) found with ProductID(\"00-871895\"):");
-		System.out.println("--------------------------------");
-		System.out.println(repository.findByProductID("00-871895"));
-		System.out.println();
+                products.add(new ProductData(warehouseId, productId, name, category, quantity));
+            }
 
-		// Fetch all products of Warehouse 1
-		System.out.println("Record(s) found with findByWarehouseID(\"1\"):");
-		System.out.println("--------------------------------");
-		for (ProductData productdata : repository.findByWarehouseID("1")) {
-			System.out.println(productdata);
-		}
-		System.out.println();
-
-		// Fetch all products of Warehouse 2
-		System.out.println("Record(s) found with findByWarehouseID(\"2\"):");
-		System.out.println("--------------------------------");
-		for (ProductData productdata : repository.findByWarehouseID("2")) {
-			System.out.println(productdata);
-		}
-
-	}
-
+            productRepo.saveAll(products);
+            System.out.println("✅ DB-Erfolg: 5 Warenhäuser und 300 Produkte geladen!");
+        };
+    }
 }
