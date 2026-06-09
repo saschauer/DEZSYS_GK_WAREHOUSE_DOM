@@ -72,6 +72,7 @@ spring.data.mongodb.database=testdb
 ### 1. CREATE – Dokument einfügen
 
 ```javascript
+use test
 db.warehouseData.insertOne({
   warehouseID: "99",
   warehouseName: "Testlager Klagenfurt",
@@ -84,7 +85,7 @@ db.warehouseData.insertOne({
 ```json
 {
   "acknowledged": true,
-  "insertedId": ObjectId("6a27e11f978f0b096f0ff001")
+  "insertedId": ObjectId("6a27e11f978f0b096f0ff001")ker 
 }
 ```
 
@@ -148,6 +149,17 @@ db.warehouseData.deleteOne({ "warehouseID": "99" })
 { "acknowledged": true, "deletedCount": 1 }
 ```
 
+**Count documents**
+```JSON
+use test
+db.warehouseData.countDocuments()
+// Ergebnis: 5
+
+db.productData.countDocuments()
+// Ergebnis: 300
+
+```
+
 ---
 
 ## 5. Berichtswesen und Aggregationen (Vertiefung)
@@ -156,12 +168,9 @@ db.warehouseData.deleteOne({ "warehouseID": "99" })
 
 ```javascript
 db.warehouseData.aggregate([
-  { $unwind: "$productData" },
-  { $match: { "productData.productID": "40-000009" } },
-  { $group: {
-      _id: "$productData.productID",
-      Gesamtbestand: { $sum: "$productData.productQuantity" }
-  }}
+    { $unwind: "$productData" },
+    { $match: { "productData.productID": "00-000036" } },
+    { $group: { _id: "$productData.productID", Gesamtbestand: { $sum: "$productData.productQuantity" } } }
 ])
 ```
 
@@ -174,15 +183,9 @@ db.warehouseData.aggregate([
 
 ```javascript
 db.warehouseData.aggregate([
-  { $match: { "warehouseID": "1" } },
-  { $unwind: "$productData" },
-  { $match: { "productData.productID": "40-000009" } },
-  { $project: {
-      _id: 0,
-      warehouseName: 1,
-      "productData.productID": 1,
-      "productData.productQuantity": 1
-  }}
+    { $unwind: "$productData" },
+    { $match: { "productData.productID": "00-000036" } },
+    { $project: { _id: 0, warehouseID: 1, warehouseName: 1, "productData.productQuantity": 1 } }
 ])
 ```
 
@@ -198,12 +201,12 @@ db.warehouseData.aggregate([
 
 ```javascript
 db.warehouseData.aggregate([
-  { $unwind: "$productData" },
-  { $group: {
-      _id: { id: "$productData.productID", name: "$productData.productName" },
-      Gesamtbestand: { $sum: "$productData.productQuantity" }
-  }},
-  { $match: { Gesamtbestand: { $lt: 500 } } }
+    { $unwind: "$productData" },
+    { $group: {
+            _id: { id: "$productData.productID", name: "$productData.productName" },
+            Gesamtbestand: { $sum: "$productData.productQuantity" }
+        }},
+    { $match: { Gesamtbestand: { $lt: 500 } } }
 ])
 ```
 

@@ -25,7 +25,6 @@ public class ProductController {
         return repository.findAll();
     }
 
-    // Korrigiert: Sucht das Produkt über alle Lagerstandorte hinweg
     @GetMapping("/{id}")
     public List<ProductData> getProductByIdAllLocations(@PathVariable String id) {
         return repository.findAll().stream()

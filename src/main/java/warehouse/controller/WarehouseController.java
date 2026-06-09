@@ -26,26 +26,19 @@ public class WarehouseController {
 
     @GetMapping
     public List<Warehouse> getAllWarehouses() {
-        List<Warehouse> warehouses = warehouseRepository.findAll();
-        for (Warehouse wh : warehouses) {
-            List<ProductData> products = productRepository.findByWarehouseID(wh.getWarehouseID());
-            wh.setProductData(products);
-        }
-        return warehouses;
+        // Da die Daten jetzt direkt im Dokument eingebettet sind, reicht ein einfaches findAll()
+        return warehouseRepository.findAll();
     }
 
     @GetMapping("/{id}")
     public Warehouse getWarehouseById(@PathVariable String id) {
-        Warehouse wh = warehouseRepository.findById(id).orElse(null);
-        if (wh != null) {
-            wh.setProductData(productRepository.findByWarehouseID(id));
-        }
-        return wh;
+        return warehouseRepository.findById(id).orElse(null);
     }
 
     @DeleteMapping("/{id}")
     public void deleteWarehouse(@PathVariable String id) {
         warehouseRepository.deleteById(id);
+        // Kaskadierendes Löschen der flachen Produkt-Einträge
         List<ProductData> products = productRepository.findByWarehouseID(id);
         productRepository.deleteAll(products);
     }
